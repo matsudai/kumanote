@@ -1,24 +1,21 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const fs = require('fs');
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/sensors/:id/data', (req, res) => {
-  const filePath = `${__dirname}/data/${req.params.id}.csv`;
-  fs.access(filePath, (e) => {
-    if (e) {
-      res.send('');
-    } else {
-      fs.readFile(filePath, (e, data) => {
-        res.send(data);
-      });
-    }
+app.get('/sensors', (_, res) => {
+  fs.readdir('data', (_, files) => {
+    const sensorDataFiles = (files ?? []).filter((file) => /\.csv$/.test(file));
+    const sensorIds = sensorDataFiles.map((file) => file.replace(/\.csv$/, ''));
+    res.send({ status: 'ok', sensors: sensorIds.map((id) => ({ id })) });
   });
 });
 
 app.get('/sensors/:id/data.csv', (req, res) => {
-  const filePath = `${__dirname}/data/${req.params.id}.csv`;
+  const filePath = path.join(__dirname, 'data', `${req.params.id}.csv`);
   fs.access(filePath, (e) => {
     if (e) {
       res.send('');
@@ -29,8 +26,8 @@ app.get('/sensors/:id/data.csv', (req, res) => {
 });
 
 app.post('/sensors/:id/data', (req, res) => {
-  const baseDir = `${__dirname}/data`;
-  const filePath = `${baseDir}/${req.params.id}.csv`;
+  const baseDir = path.join(__dirname, 'data');
+  const filePath = path.join(baseDir, `${req.params.id}.csv`);;
 
   fs.mkdir(baseDir, { recursive: true }, (e) => {
     if (e) {
