@@ -17,103 +17,127 @@
     <div id="chart-lux"></div>
 
     <script>
-      const chartTemperature = c3.generate({
-        bindto: '#chart-temperature',
-        axis: {
-          x: {
-            type: 'timeseries',
-            tick: {
-              format: '%m/%d %H:%M'
+      const request = new XMLHttpRequest();
+      request.addEventListener('load', (event) => {
+          const csvText = event.target.responseText;
+          const timeseries = [];
+          const temperatures = [];
+          const humidities = [];
+          const lux_on_desks = [];
+          const lux_on_vdts = [];
+          csvText.split('\n').forEach((row) => {
+            const values = row.split(',');
+            const timeserie = Number(values[1]);
+            const temperature = Number(values[2]);
+            const humiditie = Number(values[3]);
+            const lux_on_desk = Number(values[4]);
+
+            timeseries.push(timeserie);
+            temperatures.push(temperature);
+            humidities.push(humiditie);
+            lux_on_desks.push(lux_on_desk);
+          });
+
+          const chartTemperature = c3.generate({
+            bindto: '#chart-temperature',
+            axis: {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  format: '%m/%d %H:%M'
+                }
+              }
+            },
+            data: {
+              x: 'x',
+              columns: [
+                ['x', ...timeseries],
+                ['sensor1', ...temperatures]
+              ],
+              axes: {
+                sensor1: 'y'
+              }
+            },
+            grid: {
+              y: {
+                lines: [
+                  { value: 28, text: '28 [C]' },
+                  { value: 17, text: '17 [C]' }
+                ]
+              }
             }
-          }
-        },
-        data: {
-          x: 'x',
-          columns: [
-            ['x', 1613743027644, 1613743087645, 1613743147646, 1613743207647, 1613743267648, 1613743327649, 1613743387650, 1613743447651],
-            ['sensor1', 10.111, 11.222, 12.333, 13.444, 24.555, 26.666, 16.777, 32.888]
-          ],
-          axes: {
-            sensor1: 'y'
-          }
-        },
-        grid: {
-          y: {
-            lines: [
-              { value: 28, text: '28 [C]' },
-              { value: 17, text: '17 [C]' }
-            ]
-          }
-        }
+          });
+          const chartHumidity = c3.generate({
+            bindto: '#chart-humidity',
+            axis: {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  format: '%m/%d %H:%M'
+                }
+              },
+              y: {
+                min: 0,
+                max: 100,
+                padding: {
+                  top: 0,
+                  bottom: 0
+                }
+              }
+            },
+            data: {
+              x: 'x',
+              columns: [
+                ['x', ...timeseries],
+                ['sensor1', ...humidities]
+              ],
+              axes: {
+                sensor1: 'y'
+              }
+            },
+            grid: {
+              y: {
+                lines: [
+                  { value: 70, text: '70 [%]' },
+                  { value: 40, text: '40 [%]' }
+                ]
+              }
+            }
+          });
+          const chartLux = c3.generate({
+            bindto: '#chart-lux',
+            axis: {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  format: '%m/%d %H:%M'
+                }
+              }
+            },
+            data: {
+              x: 'x',
+              columns: [
+                ['x', ...timeseries],
+                ['sensor1_desk', ...lux_on_desks],
+                ['sensor1_vdt', ...lux_on_vdts]
+              ],
+              axes: {
+                sensor1_desk: 'y',
+                sensor1_vdt: 'y'
+              }
+            },
+            grid: {
+              y: {
+                lines: [
+                  { value: 500, text: ' [Lux]（VDT）' },
+                  { value: 300, text: ' [Lux]（デスク）' }
+                ]
+              }
+            }
+          });
       });
-      const chartHumidity = c3.generate({
-        bindto: '#chart-humidity',
-        axis: {
-          x: {
-            type: 'timeseries',
-            tick: {
-              format: '%m/%d %H:%M'
-            }
-          },
-          y: {
-            min: 0,
-            max: 100,
-            padding: {
-              top: 0,
-              bottom: 0
-            }
-          }
-        },
-        data: {
-          x: 'x',
-          columns: [
-            ['x', 1613743027644, 1613743087645, 1613743147646, 1613743207647, 1613743267648, 1613743327649, 1613743387650, 1613743447651],
-            ['sensor1', 10.111, 11.222, 12.333, 13.444, 24.555, 26.666, 16.777, 32.888]
-          ],
-          axes: {
-            sensor1: 'y'
-          }
-        },
-        grid: {
-          y: {
-            lines: [
-              { value: 70, text: '70 [%]' },
-              { value: 40, text: '40 [%]' }
-            ]
-          }
-        }
-      });
-      const chartLux = c3.generate({
-        bindto: '#chart-lux',
-        axis: {
-          x: {
-            type: 'timeseries',
-            tick: {
-              format: '%m/%d %H:%M'
-            }
-          }
-        },
-        data: {
-          x: 'x',
-          columns: [
-            ['x', 1613743027644, 1613743087645, 1613743147646, 1613743207647, 1613743267648, 1613743327649, 1613743387650, 1613743447651],
-            ['sensor1_desk', 300, 1200, 1100, 1400, 1150, 1250, 1300, 1200],
-            ['sensor1_vdt', 400, 650, 700, 800, 150, 250, 500, 600]
-          ],
-          axes: {
-            sensor1_desk: 'y',
-            sensor1_vdt: 'y'
-          }
-        },
-        grid: {
-          y: {
-            lines: [
-              { value: 500, text: ' [Lux]（VDT）' },
-              { value: 300, text: ' [Lux]（デスク）' }
-            ]
-          }
-        }
-      });
+      request.open('GET', '/sensors/1/data.csv', true);
+      request.send();
     </script>
   </body>
 </html>
